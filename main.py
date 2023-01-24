@@ -222,6 +222,7 @@ class Cat(Sprite):
         self.length = len(cat_type)
 
     def move(self, direction):
+        global count
         if direction == 'left' and self.board_pos[0] != 0:
             if board.board[self.board_pos[1]][self.board_pos[0] - 1] == 0:
                 board.board[self.board_pos[1]][self.board_pos[0] - 1] = 1
@@ -229,6 +230,7 @@ class Cat(Sprite):
                 self.board_pos[0] -= 1
                 self.rect = self.image.get_rect().move(
                     board.left + cat_width * self.board_pos[0], board.top + cat_height * self.board_pos[1])
+                count -= 1
 
         elif direction == 'right' and self.board_pos[0] + self.length < 8:
             if board.board[self.board_pos[1]][self.board_pos[0] + self.length] == 0:
@@ -237,7 +239,7 @@ class Cat(Sprite):
                 self.board_pos[0] += 1
                 self.rect = self.image.get_rect().move(
                     board.left + cat_width * self.board_pos[0], board.top + cat_height * self.board_pos[1])
-
+                count += 1
     def up(self):
         if self.board_pos[1] > 1:
             for i in range(self.length):
@@ -464,6 +466,8 @@ points = 0
 sprite_group.update()
 pygame.time.set_timer(pygame.USEREVENT+1, 50)
 c = 0
+count = 0
+string_on_screen = False
 while running:
     fon = pygame.transform.scale(load_image('fon.png'), screen_size)
     screen.blit(fon, (0, 0))
@@ -485,7 +489,9 @@ while running:
                 if current_cat:
                     current_cat.move("right")
             elif event.key == pygame.K_RETURN:
+                string_on_screen = False
                 sprite_group.update()
+                count = 0
                 sprite_group.draw(screen)
                 check_to_del()
                 for cat in reversed(list(sprite_group)):
@@ -500,9 +506,17 @@ while running:
                     cat.update()
                 sprite_group.update()
         elif event.type == pygame.MOUSEBUTTONDOWN:
-            current_cat = board.get_cat(event.pos)
+            if count == 0:
+                string_on_screen = False
+                current_cat = board.get_cat(event.pos)
+            else:
+                string_on_screen = True
         elif event.type == pygame.USEREVENT + 1:
             cat_gif1.update()
+    if string_on_screen:
+        font = pygame.font.Font('data/OdinRounded-Yd82.ttf', 20)
+        string_rendered = font.render(f'You have to press Enter before moving another block', True, pygame.Color('white'))
+        screen.blit(string_rendered, (60, 750))
     check_to_del()
     all_particles.update()
     clock.tick(FPS)
